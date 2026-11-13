@@ -1,10 +1,10 @@
-<!-- Fundo imersivo com foto e filtro escuro (85% de opacidade) -->
+<!-- Fundo imersivo com foto e alinhamento centralizado -->
 <div class="min-h-screen bg-gray-900/85 bg-blend-overlay bg-[url('/1.jpg')] bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center p-4 relative overflow-hidden">
   
-  <!-- Efeito de luz desfocada no fundo (ajuda a separar o card da foto) -->
+  <!-- Efeito de luz desfocada no fundo -->
   <div class="absolute w-96 h-96 bg-orange-500 opacity-10 rounded-full blur-[100px] pointer-events-none"></div>
 
-  <!-- Card principal (o vidro translúcido vai ficar incrível com a foto atrás) -->
+  <!-- Card principal -->
   <div class="relative w-full max-w-md bg-caixa/90 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-gray-800 z-10 flex flex-col">
     
     <!-- Cabeçalho -->
@@ -14,7 +14,8 @@
       <h2 class="text-2xl font-black text-yellow-500 tracking-tight italic mt-1">
         Lista FutQuinta - {{ dataDoProximoJogo }}
       </h2>
-      <p class="text-gray-400 text-sm font-medium mt-1">Confirmados 0/12</p>
+      <!-- Contador dinâmico -->
+      <p class="text-gray-400 text-sm font-medium mt-1">Confirmados {{ listaJogadores.length }}/12</p>
     </div>
 
     <!-- Container da Lista -->
@@ -24,7 +25,14 @@
       @for (vaga of vagasConfirmadas; track $index) {
         <div class="flex items-center py-2 border-b border-gray-800/60 last:border-0">
           <span class="text-yellow-500 font-bold w-7 text-right mr-3">{{ $index + 1 }}.</span>
-          <span class="text-gray-500 italic text-sm">Disponível</span>
+          
+          <!-- Lógica para mostrar o nome real ou Disponível -->
+          @if (listaJogadores[$index]) {
+            <span class="text-white font-bold text-sm uppercase tracking-wide">{{ listaJogadores[$index].nome }}</span>
+            <span class="ml-auto text-[10px] bg-gray-800 border border-gray-700 text-gray-400 px-2 py-0.5 rounded uppercase">{{ listaJogadores[$index].posicao }}</span>
+          } @else {
+            <span class="text-gray-500 italic text-sm">Disponível</span>
+          }
         </div>
       }
       
@@ -34,7 +42,13 @@
       @for (espera of listaEspera; track $index) {
         <div class="flex items-center py-2 border-b border-gray-800/60 last:border-0">
           <span class="text-cyan-700 font-bold w-7 text-right mr-3">{{ $index + 13 }}.</span>
-          <span class="text-gray-500 italic text-sm">Disponível</span>
+          
+          @if (listaJogadores[$index + 12]) {
+            <span class="text-white font-bold text-sm uppercase tracking-wide">{{ listaJogadores[$index + 12].nome }}</span>
+            <span class="ml-auto text-[10px] bg-gray-800 border border-gray-700 text-gray-400 px-2 py-0.5 rounded uppercase">{{ listaJogadores[$index + 12].posicao }}</span>
+          } @else {
+            <span class="text-gray-500 italic text-sm">Disponível</span>
+          }
         </div>
       }
     </div>

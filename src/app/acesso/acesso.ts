@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router'; // Importando o "GPS" do Angular
+import { Router } from '@angular/router';
+import { FilaService } from '../fila.service'; 
 
 @Component({
   selector: 'app-acesso',
@@ -12,21 +13,17 @@ export class Acesso {
   nomeJogador: string = '';
   whatsappJogador: string = '';
 
-  // Injetando o Router via construtor (igualzinho no C#)
-  constructor(private router: Router) {}
+  constructor(private router: Router, private filaService: FilaService) {}
 
   entrarNaFila() {
-    // Validação simples para não deixar entrar vazio
     if (!this.nomeJogador.trim() || !this.whatsappJogador.trim()) {
       alert('Preencha seu nome e WhatsApp para garantir a vaga!');
       return;
     }
 
-    // Apenas para vermos no console (F12) que capturou certo
-    console.log('Jogador pronto:', this.nomeJogador);
-    console.log('Contato:', this.whatsappJogador);
+    // CORREÇÃO: Apenas guarda os dados temporariamente, não coloca na lista ainda!
+    this.filaService.setJogadorAtual(this.nomeJogador, this.whatsappJogador);
 
-    // O comando que faz a mágica de trocar de tela sem recarregar a página
     this.router.navigate(['/fila']);
   }
 }
