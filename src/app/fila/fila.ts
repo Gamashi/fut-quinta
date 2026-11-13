@@ -9,23 +9,31 @@ import { FilaService, Jogador } from '../fila.service';
   templateUrl: './fila.html',
 })
 export class Fila implements OnInit {
-  // A lista com os dados reais que vem do serviço
   listaJogadores: Jogador[] = []; 
+  listaJogadoresEspera: Jogador[] = []; // NOVA: Recebe os dados reais da espera
   
-  // Os arrays estruturais para desenhar os 17 espaços na tela
   vagasConfirmadas = new Array(12);
-  listaEspera = new Array(5);
-
+  listaEspera = new Array(5); // Mantemos para desenhar os 5 espaços vazios
+  
   posicaoSelecionada: string = 'linha';
   dataDoProximoJogo: string = '';
+  jaEstaNaFila: boolean = false;
+
+// AGORA É UMA STRING QUE GUARDA O ESTADO REAL DO USUÁRIO
+  statusFila: 'confirmado' | 'espera' | null = null;
 
   constructor(private filaService: FilaService) {}
 
   ngOnInit() {
     this.calcularProximaQuinta();
-    
-    // Puxando os jogadores salvos na memória
     this.listaJogadores = this.filaService.obterJogadores();
+    this.listaJogadoresEspera = this.filaService.obterEspera();
+
+    // Quando a tela abre, descobre onde o cara tá
+    const atual = this.filaService.jogadorAtual;
+    if (atual) {
+      this.statusFila = this.filaService.obterStatusJogador(atual.whatsapp);
+    }
   }
 
   calcularProximaQuinta() {
@@ -45,28 +53,21 @@ export class Fila implements OnInit {
   }
 
 confirmarVaga() {
-    // Puxa os dados que a tela de Acesso deixou salvos na memória
     const dadosTemporarios = this.filaService.jogadorAtual;
 
-    // Se os dados existirem (o usuário não burlou a tela de acesso)
-    if (dadosTemporarios) {
-      
-      // Agora sim, efetiva a vaga na lista oficial!
+    if (dadosTemporarios && !this.statusFila) {
+      // Manda pro serviço decidir (ele vai checar a cota de linha/goleiro)
       this.filaService.adicionarJogador({
         nome: dadosTemporarios.nome,
         whatsapp: dadosTemporarios.whatsapp,
-        posicao: this.posicaoSelecionada // Junta com a escolha de Linha/Goleiro
+        posicao: this.posicaoSelecionada 
       });
 
-      // Opcional: limpa os dados temporários para evitar duplicação de cliques
-      this.filaService.jogadorAtual = null;
-
-      // Atualiza a lista exibida na tela
       this.listaJogadores = this.filaService.obterJogadores();
+      this.listaJogadoresEspera = this.filaService.obterEspera();
       
-      alert('Vaga garantida com sucesso!');
-    } else {
-      alert('Erro: Volte para a tela inicial e preencha seus dados.');
+      // Imediatamente após clicar, ele lê o resultado (se coube ou transbordou)
+      this.statusFila = this.filaService.obterStatusJogador(dadosTemporarios.whatsapp); 
     }
   }
 }

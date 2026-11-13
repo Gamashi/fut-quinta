@@ -43,6 +43,7 @@
           type="tel" 
           placeholder="(54) 99999-9999" 
           autocomplete="off"
+          (input)="aplicarMascara($event)" maxlength="15"
           class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all shadow-inner"
         >
       </div>
