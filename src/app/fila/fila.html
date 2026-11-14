@@ -83,11 +83,17 @@
 
       </div>
 
-      <!-- Botão Garantir Vaga -->
+
+<!-- Botão Garantir Vaga com Loading -->
       <button 
         (click)="confirmarVaga()"
-        class="w-full bg-yellow-500 hover:bg-orange-400 text-white font-extrabold text-lg py-3.5 rounded-xl transition-all duration-300 shadow-[0_4px_14px_rgba(249,115,22,0.4)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5">
-        GARANTIR VAGA
+        [disabled]="carregando"
+        class="w-full bg-yellow-500 hover:bg-orange-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-extrabold text-lg py-3.5 rounded-xl transition-all duration-300 shadow-[0_4px_14px_rgba(249,115,22,0.4)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5">
+        @if (carregando) {
+          <span class="animate-pulse">PROCESSANDO...</span>
+        } @else {
+          GARANTIR VAGA
+        }
       </button>
     } @else {
       

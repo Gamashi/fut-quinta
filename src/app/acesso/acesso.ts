@@ -37,6 +37,9 @@ export class Acesso {
   }
 
   entrarNaFila() {
+
+    // Força o teclado do celular a abaixar tirando o foco de qualquer input ativo
+    (document.activeElement as HTMLElement)?.blur();
     // Valida se os campos estão preenchidos e se o WhatsApp tem o tamanho exato de 15 caracteres da máscara
     if (!this.nomeJogador.trim()) {
       alert('Preencha seu nome ou apelido!');

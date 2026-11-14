@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+// 1. Importe o ChangeDetectorRef do núcleo do Angular
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FilaService, Jogador } from '../fila.service';
 
@@ -10,29 +11,51 @@ import { FilaService, Jogador } from '../fila.service';
 })
 export class Fila implements OnInit {
   listaJogadores: Jogador[] = []; 
-  listaJogadoresEspera: Jogador[] = []; // NOVA: Recebe os dados reais da espera
-  
+  listaJogadoresEspera: Jogador[] = [];
   vagasConfirmadas = new Array(12);
-  listaEspera = new Array(5); // Mantemos para desenhar os 5 espaços vazios
-  
+  listaEspera = new Array(5);
   posicaoSelecionada: string = 'linha';
   dataDoProximoJogo: string = '';
-  jaEstaNaFila: boolean = false;
-
-// AGORA É UMA STRING QUE GUARDA O ESTADO REAL DO USUÁRIO
   statusFila: 'confirmado' | 'espera' | null = null;
+  carregando: boolean = true; // NOVA: Começa travado
 
-  constructor(private filaService: FilaService) {}
+  constructor(
+    private filaService: FilaService,
+    private cdr: ChangeDetectorRef // 2. Injete ele no construtor
+  ) {}
 
-  ngOnInit() {
+async ngOnInit() {
     this.calcularProximaQuinta();
-    this.listaJogadores = this.filaService.obterJogadores();
-    this.listaJogadoresEspera = this.filaService.obterEspera();
+    
+    // O try/finally GARANTE que a tela não vai ficar travada eternamente
+    try {
+      this.carregando = true;
+      this.cdr.detectChanges(); // Força a tela a mostrar o loading
+      
+      // 1. PRIMEIRO: Baixa a lista completa de dados do Supabase
+      await this.filaService.carregarJogadoresDaNuvem();
+      
+      this.listaJogadores = this.filaService.obterJogadores();
+      this.listaJogadoresEspera = this.filaService.obterEspera();
 
-    // Quando a tela abre, descobre onde o cara tá
-    const atual = this.filaService.jogadorAtual;
-    if (atual) {
-      this.statusFila = this.filaService.obterStatusJogador(atual.whatsapp);
+      const atual = this.filaService.jogadorAtual;
+      if (atual) {
+        this.statusFila = this.filaService.obterStatusJogador(atual.whatsapp);
+      }
+      
+      // 2. SEGUNDO: Só depois que a tela montou, a gente liga o tempo real
+      this.filaService.escutarMudancasEmTempoReal(() => {
+        this.listaJogadores = this.filaService.obterJogadores();
+        this.listaJogadoresEspera = this.filaService.obterEspera();
+        this.cdr.detectChanges(); 
+      });
+
+    } catch (erro) {
+      console.error('Erro ao montar a fila:', erro);
+    } finally {
+      // 3. TERCEIRO: Dando erro ou sucesso, libera a tela!
+      this.carregando = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -52,22 +75,25 @@ export class Fila implements OnInit {
     this.dataDoProximoJogo = `${dia}/${mes}`;
   }
 
-confirmarVaga() {
+async confirmarVaga() {
     const dadosTemporarios = this.filaService.jogadorAtual;
 
-    if (dadosTemporarios && !this.statusFila) {
-      // Manda pro serviço decidir (ele vai checar a cota de linha/goleiro)
-      this.filaService.adicionarJogador({
+    if (dadosTemporarios && !this.statusFila && !this.carregando) {
+      this.carregando = true; // Trava o botão para não dar clique duplo
+      this.cdr.detectChanges();
+      
+      const sucesso = await this.filaService.adicionarJogador({
         nome: dadosTemporarios.nome,
         whatsapp: dadosTemporarios.whatsapp,
         posicao: this.posicaoSelecionada 
       });
 
-      this.listaJogadores = this.filaService.obterJogadores();
-      this.listaJogadoresEspera = this.filaService.obterEspera();
+      if (sucesso) {
+        this.statusFila = this.filaService.obterStatusJogador(dadosTemporarios.whatsapp); 
+      }
       
-      // Imediatamente após clicar, ele lê o resultado (se coube ou transbordou)
-      this.statusFila = this.filaService.obterStatusJogador(dadosTemporarios.whatsapp); 
+      this.carregando = false; // Libera a tela
+      this.cdr.detectChanges();
     }
   }
 }
