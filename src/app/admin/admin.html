@@ -1,0 +1,83 @@
+<div class="min-h-screen bg-gray-900 text-white font-sans selection:bg-yellow-500/30 p-4">
+  
+  <!-- TELA DE LOGIN (Se não estiver autenticado) -->
+  @if (!estaAutenticado) {
+    <div class="max-w-xs mx-auto mt-20 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-2xl">
+      <div class="text-center mb-6">
+        <span class="text-3xl">🔒</span>
+        <h1 class="text-xl font-bold mt-2">Área Restrita</h1>
+      </div>
+      
+      <input 
+        type="password" 
+        placeholder="Senha do Admin" 
+        [(ngModel)]="senhaDigitada"
+        (keyup.enter)="entrar()"
+        class="w-full bg-gray-900 text-white px-4 py-3 rounded-lg mb-4 border border-gray-600 focus:outline-none focus:border-yellow-500 text-center">
+      
+      <button 
+        (click)="entrar()"
+        class="w-full bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 rounded-xl transition-all">
+        ACESSAR
+      </button>
+    </div>
+  } 
+  
+  <!-- PAINEL DE CONTROLE (Se a senha estiver correta) -->
+  @else {
+    <div class="max-w-md mx-auto">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-black italic tracking-tighter text-yellow-500">PAINEL ADMIN</h1>
+        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">MODO EDIÇÃO</span>
+      </div>
+
+      <!-- Lista Principal -->
+      <div class="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
+        <h2 class="text-lg font-bold mb-3 flex justify-between">
+          <span>Confirmados ({{ listaConfirmados.length }})</span>
+        </h2>
+        
+        <div class="space-y-2">
+          @for (jogador of listaConfirmados; track jogador.whatsapp) {
+            <div class="flex justify-between items-center bg-gray-900 p-3 rounded-lg border border-gray-700">
+              <div>
+                <span class="font-bold text-gray-100 block">{{ jogador.nome }}</span>
+                <span class="text-xs text-gray-400">{{ jogador.whatsapp }} | {{ jogador.posicao }}</span>
+              </div>
+              
+              <!-- Botão de Remover que faremos funcionar no próximo bloco -->
+              <button (click)="removerJogador(jogador)" class="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+          }
+          @if (listaConfirmados.length === 0) {
+            <p class="text-gray-500 italic text-center py-2">Lista vazia</p>
+          }
+        </div>
+      </div>
+
+      <!-- Lista de Espera -->
+      <div class="bg-gray-800 border border-gray-700 rounded-xl p-4">
+        <h2 class="text-lg font-bold mb-3">Espera ({{ listaEspera.length }})</h2>
+        <div class="space-y-2">
+          @for (jogador of listaEspera; track jogador.whatsapp) {
+            <div class="flex justify-between items-center bg-gray-900 p-3 rounded-lg border border-gray-700 opacity-70">
+              <div>
+                <span class="font-bold text-gray-300 block">{{ jogador.nome }}</span>
+                <span class="text-xs text-gray-500">{{ jogador.whatsapp }} | {{ jogador.posicao }}</span>
+              </div>
+              <button (click)="removerJogador(jogador)" class="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+          }
+          @if (listaEspera.length === 0) {
+            <p class="text-gray-500 italic text-center py-2">Ninguém na espera</p>
+          }
+        </div>
+      </div>
+      
+    </div>
+  }
+</div>

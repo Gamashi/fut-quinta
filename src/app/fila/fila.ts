@@ -2,6 +2,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FilaService, Jogador } from '../fila.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-fila',
@@ -21,10 +22,18 @@ export class Fila implements OnInit {
 
   constructor(
     private filaService: FilaService,
-    private cdr: ChangeDetectorRef // 2. Injete ele no construtor
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
 async ngOnInit() {
+
+    // SE DER F5 E PERDER A MEMÓRIA, VOLTA PRA TELA INICIAL
+    if (!this.filaService.jogadorAtual) {
+      this.router.navigate(['/']); // ou ['/acesso'] dependendo de como está sua rota
+      return; // Para a execução do resto do código
+    }
+
     this.calcularProximaQuinta();
     
     // O try/finally GARANTE que a tela não vai ficar travada eternamente

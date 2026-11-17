@@ -71,12 +71,35 @@ async carregarJogadoresDaNuvem() {
       }]);
 
     if (error) {
-      console.error('Erro ao inserir:', error);
-      alert('Erro de conexão. Tente novamente.');
+          // 23505 é o código oficial do PostgreSQL para "Já existe esse dado (UNIQUE)"
+          if (error.code === '23505') {
+            alert('Caiu no anti-fraude! Este WhatsApp já garantiu vaga para esta semana.');
+          } else {
+            console.error('Erro ao inserir:', error);
+            alert('Erro de conexão. Tente novamente.');
+          }
+          return false; // Retorna falso para destravar o botão na tela
+        }
+
+    // Após salvar, manda atualizar as listas recarregando da nuvem
+    await this.carregarJogadoresDaNuvem();
+    return true;
+  }
+
+
+  async removerJogadorBanco(whatsapp: string) {
+    const { error } = await this.supabase
+      .from('fila_quinta')
+      .delete()
+      .eq('whatsapp', whatsapp); // Deleta quem tiver esse número exato
+
+    if (error) {
+      console.error('Erro ao excluir:', error);
+      alert('Erro ao tentar remover o jogador.');
       return false;
     }
 
-    // Após salvar, manda atualizar as listas recarregando da nuvem
+    // Após deletar, recarregamos as cotas locais
     await this.carregarJogadoresDaNuvem();
     return true;
   }
@@ -99,7 +122,7 @@ escutarMudancasEmTempoReal(avisoParaAtualizarATela: () => void) {
       .channel('fila_quinta_channel')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'fila_quinta' },
+        { event: '*', schema: 'public', table: 'fila_quinta' },
         async (payload) => {
           await this.carregarJogadoresDaNuvem(); 
           avisoParaAtualizarATela(); 
